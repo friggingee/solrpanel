@@ -1,0 +1,70 @@
+<f:layout name="Default" />
+
+This Template is responsible for creating a table of domain objects.
+
+
+If you modify this template, do not forget to change the overwrite settings
+in /Configuration/ExtensionBuilder/settings.yaml:
+  Resources:
+    Private:
+      Templates:
+        List.html: keep
+
+Otherwise your changes will be overwritten the next time you save the extension in the extension builder
+
+<f:section name="content">
+
+	<f:flashMessages />
+
+	<h1>Status Report</h1>
+
+	<h2>Indexing Failures</h2>
+	<div>
+		<p>While indexing, Solr encountered <f:count subject="{indexingFailures}" /> indexing failures.</p>
+
+		<f:form action="" name="indexingErrorsForm" enctype="multipart/form-data" >
+			<f:form.submit name="callAction[getIndexingFailures]" value="Load indexing errors" />
+			<p>The following pages are affected:</p>
+			<table class="typo3-dblist">
+				<tr class="t3-row-header">
+					<th width="5%">Page UID</th>
+					<th width="30%">Title</th>
+					<th width="10%">Content</th>
+					<th width="5%">
+						<f:form.submit name="callAction[removeFromQueue]" value="Remove" />
+					</th>
+					<th width="5%">
+						<f:form.submit name="callAction[forceReindexing]" value="Re-index" />
+					</th>
+					<th>Error Info</th>
+				</tr>
+				<f:for each="{indexingFailures}" as="pageData">
+					<tr class="db_list_normal">
+						<td class="right">{pageData.uid}</td>
+						<td><f:link.external uri="{baseURL}index.php?id={pageData.uid}" target="_blank">{pageData.title}</f:link.external></td>
+						<td>
+							<f:if condition="{0:pageData.content} == {0:''}">
+								<f:then>
+									N/A
+								</f:then>
+								<f:else>
+									{pageData.content}
+								</f:else>
+							</f:if>
+						</td>
+						<td>
+							<f:form.checkbox name="remove[{pageData.uid}]" value="1" />
+						</td>
+						<td>
+							<f:form.checkbox name="reindex[{pageData.uid}]" value="1" />
+						</td>
+						<td>
+							<f:form.submit name="callAction[getErrorDetails][{pageData.uid}]" value="Get error details for item" />
+						</td>
+					</tr>
+				</f:for>
+			</table>
+		</f:form>
+	</div>
+
+</f:section>

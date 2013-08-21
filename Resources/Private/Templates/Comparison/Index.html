@@ -1,0 +1,187 @@
+<f:layout name="Default" />
+
+This Template is responsible for creating a table of domain objects.
+
+
+If you modify this template, do not forget to change the overwrite settings
+in /Configuration/ExtensionBuilder/settings.yaml:
+  Resources:
+    Private:
+      Templates:
+        List.html: keep
+
+Otherwise your changes will be overwritten the next time you save the extension in the extension builder
+
+<f:section name="content">
+
+<f:flashMessages />
+
+<h1>Result comparison sheet</h1>
+
+<f:form name="searchwords" enctype="multipart/form-data">
+	<div style="float:left;margin-right:20px;">
+		<p>Provide the searchwords as a comma-separated list.</p>
+		<f:form.textfield name="searchwords" size="60" value="{searchwords}"/><br />
+		<f:form.submit value="Get comparison data for searchwords" />
+	</div>
+	<div style="float:left">
+		<p>Provide additional query modificators for comparison.</p>
+		<table class="typo3-dblist">
+			<tr class="t3-row-header">
+				<th>
+					Modificator Name
+				</th>
+				<th>
+					Modificator Value
+				</th>
+			</tr>
+			<f:if condition="{addMods}">
+				<f:for each="{addMods}" as="mod" key="modKey">
+					<tr class="db_list_normal">
+						<td>
+							<f:form.textfield value="{mod.modKey}" size="20" name="addMods[{modKey}][modKey]" />
+						</td>
+						<td>
+							<f:form.textfield value="{mod.modValue}" size="75" name="addMods[{modKey}][modValue]" style="width:98%" />
+						</td>
+					</tr>
+				</f:for>
+			</f:if>
+			<tr>
+				<td width="20%">
+					<f:form.textfield value="" name="addMods[newMod][modKey]" />
+				</td>
+				<td>
+					<f:form.textfield value="" name="addMods[newMod][modValue]" style="width:98%" />
+				</td>
+			</tr>
+		</table>
+		<f:form.submit value="Add query modificators" />
+	</div>
+
+	<f:if condition="{f:count(subject(traceDoc))} > 0">
+		<div style="float:right;margin-top:20px;">
+			
+			<table class="typo3-dblist">
+				<tr class="t3-row-header">
+					<th colspan="2">Number of traced documents:</th>
+					<th colspan="2"><f:count subject="{traceDoc}" /></th>
+				</tr>
+				<tr class="t3-row-header">
+					<th colspan="2">Number of searchwords:</th>
+					<th colspan="2"><f:count subject="{comparisonChart}" /></th>
+				</tr>
+				<tr class="t3-row-header">
+					<th>Modificator name</th>
+					<th>Points (less is better!)</th>
+					<th>Overall hits<br />(more is better!)</th>
+					<th>Score (lower is better!)</th>
+				</tr>
+				<f:for each="{modScore}" as="scoreData" key="mod">
+					<tr style="{f:if(condition: '{scoreData.score} == {minModScore}', then: 'background-color:lime;')}">
+						<td>{mod}</td>
+						<td>{scoreData.points}</td>
+						<td>{scoreData.hits}</td>
+						<td>{scoreData.score}</td>
+					</tr>
+				</f:for>
+			</table>
+		</div>
+	</f:if>
+
+	<div style="float:none;clear:both;"></div>
+
+	<div style="margin-top:20px;">
+		<strong>Active Query Modificators:</strong>
+		<ul>
+			<f:for each="{solrQueryMods}" as="modValue" key="modKey">
+				<li>{modKey} = {modValue}</li>
+			</f:for>
+		</ul>
+	</div>
+
+	<table class="typo3-dblist">
+	<f:for each="{comparisonChart}" as="wordChart" key="word">
+		<tr>
+			<td>
+				<h2>{word}</h2>
+				<table class="typo3-dblist">
+					<tr>
+						<f:for each="{wordChart}" as="modChart" key="mod">
+							<td>
+								<h3>{mod}</h3>
+								<table class="typo3-dblist">
+									<tr>
+										<th colspan="2">Statistics for "{word}" with modifiers <em>{mod}</em></th>
+									</tr>
+									<tr>
+										<td colspan="2">
+											<strong>Result types</strong>
+										</td>
+									</tr>
+									<f:for each="{modChart.stats.resultTypes}" as="count" key="type">
+										<tr>
+											<td>{type}</td>
+											<td>{count}</td>
+										</tr>
+									</f:for>
+									<tr>
+										<td colspan="2">
+											<strong>Date range</strong>
+										</td>
+									</tr>
+										<td>from</td>
+										<td>to</td>
+									</tr>
+									<tr>
+										<td>{modChart.stats.dateRange.from}</td>
+										<td>{modChart.stats.dateRange.to}</td>
+									</tr>
+								</table>
+								<table class="typo3-dblist">
+									<f:for each="{modChart.response.docs}" as="docData" key="docNum">
+										<tr style="background-color:rgb({docData.traceCol});">
+											<td>{docNum}</td>
+											<td>
+												<table>
+													<tr>
+														<td>
+															<strong>
+																<a href="{docData.url}" target="_blank">{docData.title}</a>
+															</strong><br />
+															<small>{docData.url}</small>
+															<small>{docData.id}</small>
+														</td>
+													</tr>
+													<tr>
+														<td>{docData.changed}</td>
+													</tr>
+												</table>
+											</td>
+											<td>
+												<table>
+													<tr>
+														<td>{docData.score}</td>
+													</tr>
+													<tr>
+														<td>
+															<f:form.checkbox name="traceDoc[{word}][{docData.id}]" id="traceDoc[{word}][{docData.id}]" value="1" checked="{docData.traceCol} > 0"/>
+															<label for="traceDoc[{word}][{docData.id}]">trace</label>
+														</td>
+													</tr>
+												</table>
+											</td>
+										</tr>
+									</f:for>
+								</table>
+								###PAGINATION###
+							</td>
+						</f:for>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</f:for>
+	</table>
+</f:form>
+</f:section>

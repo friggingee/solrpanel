@@ -1,0 +1,11 @@
+# Module configuration
+module.tx_solrpanel {
+	persistence {
+		storagePid = {$plugin.tx_solrpanel.persistence.storagePid}
+	}
+	view {
+		templateRootPath = {$module.tx_solrpanel.view.templateRootPath}
+		partialRootPath = {$module.tx_solrpanel.view.partialRootPath}
+		layoutRootPath = {$module.tx_solrpanel.view.layoutRootPath}
+	}
+}

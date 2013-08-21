@@ -1,0 +1,211 @@
+<f:layout name="Default" />
+
+This Template is responsible for creating a table of domain objects.
+
+
+If you modify this template, do not forget to change the overwrite settings
+in /Configuration/ExtensionBuilder/settings.yaml:
+  Resources:
+    Private:
+      Templates:
+        List.html: keep
+
+Otherwise your changes will be overwritten the next time you save the extension in the extension builder
+
+<f:section name="content">
+	<h1>Solr Query Log Analyzer</h1>
+	
+	<h2>Most frequent searched keywords from  to </h2>
+	
+	<f:form name="setDateRange" enctype="multipart/form-data">
+		<div>
+			Data is available for period from {dateRange.min} to {dateRange.max}.
+		</div>
+		<fieldset>
+			<legend>set date range</legend>
+			<label>From</label>
+			<f:form.select name="dateRange[from][day]" options="{1:01,2:02,3:03,4:04,5:05,6:06,7:07,8:08,9:09,10:10,11:11,12:12,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:21,22:22,23:23,24:24,25:25,26:26,27:27,28:28,29:29,30:30,31:31}" />
+			<f:form.select name="dateRange[from][month]" options="{1:'Jan',2:'Feb',3:'Mar',4:'Apr',5:'May',6:'Jun',7:'Jul',8:'Aug',9:'Sep',10:'Oct',11:'Nov',12:'Dec'}" />
+			<f:form.select name="dateRange[from][year]" options="{dateRange.yearRange}" />
+			<br />
+
+			<label>To</label>
+			<f:form.select name="dateRange[to][day]" options="{1:01,2:02,3:03,4:04,5:05,6:06,7:07,8:08,9:09,10:10,11:11,12:12,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:21,22:22,23:23,24:24,25:25,26:26,27:27,28:28,29:29,30:30,31:31}" />
+			<f:form.select name="dateRange[to][month]" options="{1:'Jan',2:'Feb',3:'Mar',4:'Apr',5:'May',6:'Jun',7:'Jul',8:'Aug',9:'Sep',10:'Oct',11:'Nov',12:'Dec'}" />
+			<f:form.select name="dateRange[to][year]" options="{dateRange.yearRange}" />
+			<br />
+// TODO: Prefill range selector with currently displayed datarange
+			<f:form.submit name="loadGraph" value="Reload graph" />
+		</fieldset>
+	</f:form>
+	<h2>Showing data from {dateRange.from.day}.{dateRange.from.month}.{dateRange.from.year} to {dateRange.to.day}.{dateRange.to.month}.{dateRange.to.year}:</h2>
+	<table cellpadding="0">
+		<tr class="t3-row-header">
+			<th colspan="40">Overview</th>
+		</tr>
+		<tr>
+			<td>
+				<table cellpadding="0">
+					<tr>
+						<th width="50" style="height:250px;">Graph</th>
+					</tr>
+					<tr>
+						<td align="right">(Sum)</td>
+					</tr>
+					<tr>
+						<th align="right">Good</td>
+					<tr>
+						<td align="right">Rank</td>
+					</tr>
+				</table>
+			</td>
+			<f:for each="{logData}" as="logEntry" key="pos">
+				<td>
+					<table cellpadding="0">
+						<tr>
+							<td style="height:250px;position:relative;">
+								<div class="allRequests" style="height:100%;position:absolute;">
+									<div style="width:25px;height:{logEntry.leftHeight}%;"></div>
+									<div style="position:relative;width:25px;height:{logEntry.height}%;background-color:lime;"></div>
+								</div>
+								<div class="badRequests" style="height:100%;position:absolute;">
+									<div style="width:25px;height:{logEntry.badLeftHeight}%;"></div>
+									<div style="position:relative;width:25px;height:{logEntry.badHeight}%;background-color:pink;">
+										<div style="position:absolute;top:-15px;width:25px;text-align:center;">{logEntry.badRequestCount}</div>
+									</div>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td><center>({logEntry.wordcount})</center></td>
+						</tr>
+						<tr>
+							<th>{logEntry.goodRequestCount}</th>
+						</tr>
+						<tr>
+							<td width="25"><center>{pos}</center></td>
+						</tr>
+					</table>
+				</td>
+			</f:for>
+		</tr>
+		<tr>
+			<td colspan="40"><small>(Numbers over red columns show "bad" requests, i.e. e.g. requests from crawlers)</small></td>
+		</tr>
+	</table>
+	<table cellpadding="0">
+		<tr class="t3-row-header">
+			<th colspan="40">"Good" requests only</th>
+		</tr>
+		<tr>
+			<td>
+				<table cellpadding="0">
+					<tr>
+						<th width="50" style="height:250px;">Graph</th>
+					</tr>
+					<tr>
+						<td align="right">prev Pos</td>
+					<tr>
+						<th align="right">Count</th>
+					</tr>
+				</table>
+			</td>
+			<f:for each="{goodLogData}" as="logEntry" key="count">
+				<td>
+					<table cellpadding="0">
+						<tr>
+							<td style="height:250px;">
+								<div style="width:25px;height:{logEntry.goodLeftHeight}%;"></div>
+								<div style="width:25px;height:{logEntry.goodHeight}%;background-color:navy;"></div>
+							</td>
+						</tr>
+						<tr>
+							<td><center>{logEntry.prevPos}</center></td>
+						</tr>
+						<tr>
+							<th width="25">{count}</th>
+						</tr>
+					</table>
+				</td>
+			</f:for>
+		</tr>
+	</table>
+	<table cellpadding="0">
+		<tr>
+			<td colspan="40">
+				<f:form name="getWordStats" enctype="multipart/form-data">
+					<table class="typo3-dblist">
+						<tr class="t3-row-header">
+							<td>Rank</td>
+							<td>Count</td>
+							<td>Keyword</td>
+							<td>
+								Get day-stats for keyword<br />
+								<span style="color:red">WARNING: Might be extremely time consuming!</span>
+							</td>
+						</tr>
+						<f:for each="{logData}" as="logEntry" key="pos">
+							<tr class="db_list_normal">
+								<td>{pos}</td>
+								<td>{logEntry.wordcount}</td>
+								<td>{logEntry.keyword}</td>
+								<td>
+									<f:if condition="{f:count(subject:logEntry.wordstats)} > 0">
+										<f:then>
+											<table cellpadding="0">
+												<tr>
+													<f:for each="{logEntry.wordstats}" as="dayData" key="fromDate">
+														<td>
+															<table cellpadding="0" cellspacing="0">
+																<tr>
+																	<td style="height:100px;padding:0;margin:0;">
+																		<div style="height:{dayData.leftHeight}%;"></div>
+																		<div style="height:{dayData.height}%;background-color:pink;">
+																			<center>{dayData.wordcount}</center>
+																		</div>
+																	</td>
+																</tr>
+															</table>
+														</td>
+													</f:for>
+												</tr>
+											</table>
+										</f:then>
+										<f:else>
+											<f:form.submit name="getWordStats[{logEntry.keyword}]" value="get stats" />
+											<f:form.hidden name="loadGraph" value="1" />
+
+											<f:form.hidden name="dateRange[from][day]" value="{dateRange.from.day}" />
+											<f:form.hidden name="dateRange[from][month]" value="{dateRange.from.month}" />
+											<f:form.hidden name="dateRange[from][year]" value="{dateRange.from.year}" />
+
+											<f:form.hidden name="dateRange[to][day]" value="{dateRange.to.day}" />
+											<f:form.hidden name="dateRange[to][month]" value="{dateRange.to.month}" />
+											<f:form.hidden name="dateRange[to][year]" value="{dateRange.to.year}" />
+										</f:else>
+									</f:if>
+								</td>
+							</tr>
+						</f:for>
+					</table>
+				</f:form>
+			</td>
+			<td>
+				<table class="typo3-dblist">
+					<tr class="t3-row-header">
+						<td>Old rank</td>
+						<td>Count</td>
+						<td>Keyword</td>
+					</tr>
+					<f:for each="{goodLogData}" as="logEntry" key="count">
+						<tr class="db_list_normal">
+							<td>{logEntry.prevPos}</td>
+							<td>{count}</td>
+							<td>{logEntry.keyword}</td>
+						</tr>
+					</f:for>
+				</table>
+			</td>
+		</tr>
+	</table>
+</f:section>

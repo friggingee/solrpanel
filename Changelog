@@ -1,0 +1,6 @@
+2012-07-27 Grigori Prokhorov <grigori.prokhorov@dkd.de>
+ * Version 1.1.0:
+ ** Added QueryLogData Persistence
+
+ * Version 1.0.3:
+ ** QueryLogAnalyzer now shows overall results, results for blacklisted hosts and clean results
